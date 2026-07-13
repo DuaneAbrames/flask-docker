@@ -1,0 +1,14 @@
+services:
+  flask-runner:
+    image: ghcr.io/<owner>/flask-docker:latest
+    container_name: flask-runner
+    restart: unless-stopped
+    ports:
+      - "5009:8000"
+    volumes:
+      - ./examples:/config
+    environment:
+      APP_MODULE: app:app
+      WORKERS: "1"
+      THREADS: "4"
+      TIMEOUT: "180"
