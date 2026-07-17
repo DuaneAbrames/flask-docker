@@ -4,6 +4,7 @@ set -eu
 APP_DIR="${APP_DIR:-/config}"
 APP_FILE="${APP_FILE:-app.py}"
 APP_MODULE="${APP_MODULE:-app:app}"
+PACKAGES_FILE="${PACKAGES_FILE:-packages.txt}"
 REQUIREMENTS_FILE="${REQUIREMENTS_FILE:-requirements.txt}"
 PORT="${PORT:-8000}"
 WORKERS="${WORKERS:-1}"
@@ -21,6 +22,22 @@ cd "$APP_DIR"
 if [ ! -f "$APP_FILE" ]; then
     echo "ERROR: expected '$APP_FILE' in '$APP_DIR'." >&2
     exit 1
+fi
+
+if [ -f "$PACKAGES_FILE" ]; then
+    PACKAGES="$(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$PACKAGES_FILE")"
+
+    if [ -n "$PACKAGES" ]; then
+        echo "Installing APT packages from $APP_DIR/$PACKAGES_FILE ..."
+        apt-get update
+        # Intentionally rely on shell word splitting so each package becomes its own argument.
+        apt-get install -y --no-install-recommends $PACKAGES
+        rm -rf /var/lib/apt/lists/*
+    else
+        echo "$APP_DIR/$PACKAGES_FILE is present but empty. Continuing without additional APT installs."
+    fi
+else
+    echo "No $APP_DIR/$PACKAGES_FILE found. Continuing without additional APT installs."
 fi
 
 if [ -f "$REQUIREMENTS_FILE" ]; then

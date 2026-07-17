@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
     APP_DIR=/config \
     APP_FILE=app.py \
     APP_MODULE=app:app \
+    PACKAGES_FILE=packages.txt \
     REQUIREMENTS_FILE=requirements.txt \
     PORT=8000 \
     WORKERS=1 \

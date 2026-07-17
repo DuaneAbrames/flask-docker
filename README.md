@@ -9,12 +9,14 @@ Your mounted application directory should look like this:
 ```text
 /config/
 ├── app.py
+├── packages.txt
 ├── requirements.txt
 └── any other files the app needs
 ```
 
 The container:
 
+- optionally installs `/config/packages.txt` with `apt-get`
 - optionally installs `/config/requirements.txt`
 - runs an optional pre-start shell command
 - starts Gunicorn against `APP_MODULE`
@@ -32,6 +34,7 @@ Default expectations:
 | `APP_DIR` | `/config` | Mounted application directory |
 | `APP_FILE` | `app.py` | File that must exist before startup |
 | `APP_MODULE` | `app:app` | Gunicorn import target |
+| `PACKAGES_FILE` | `packages.txt` | File installed with `apt-get` at container start if present |
 | `REQUIREMENTS_FILE` | `requirements.txt` | File installed at container start if present |
 | `PORT` | `8000` | Internal listen port |
 | `WORKERS` | `1` | Gunicorn worker processes |
@@ -81,6 +84,14 @@ A ready-to-edit example is also included at [examples/docker-compose.yml](exampl
 
 See [examples/app.py](examples/app.py) and [examples/requirements.txt](examples/requirements.txt).
 
+`packages.txt` should contain one Debian package name per line. Blank lines and `#` comments are ignored. Example:
+
+```text
+build-essential
+libpq-dev
+# imagemagick
+```
+
 You can test locally with:
 
 ```bash
@@ -107,4 +118,5 @@ To use it:
 ## Notes
 
 - Installing dependencies at startup is convenient, but it makes startup dependent on package availability.
+- Installing APT packages at startup requires the container to run as root, which is the default for this image.
 - For SQLite-backed apps, start with `WORKERS=1` unless you are certain your app and storage layer are safe with multiple processes.
