@@ -56,12 +56,8 @@ if [ -d "$STARTUP_DIR" ]; then
         [ -f "$startup_file" ] || continue
         found_startup_file=true
 
-        if [ ! -x "$startup_file" ]; then
-            echo "ERROR: startup worker '$startup_file' is not executable." >&2
-            exit 1
-        fi
-
         echo "Starting background worker $startup_file ..."
+        chmod +x "$startup_file"
         "$startup_file" &
     done
 

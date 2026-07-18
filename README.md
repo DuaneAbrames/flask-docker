@@ -97,7 +97,7 @@ libpq-dev
 
 ## Background Workers
 
-Place each background worker in `/config/startup.d/`. Every regular file in this directory is started in the background after APT packages and Python requirements are installed, and before Gunicorn starts. Files must be executable; their shebang selects the interpreter, so both shell and Python workers are supported.
+Place each background worker in `/config/startup.d/`. Every regular file in this directory is made executable and started in the background after APT packages and Python requirements are installed, and before Gunicorn starts. Its shebang selects the interpreter, so both shell and Python workers are supported.
 
 For example:
 
@@ -113,12 +113,6 @@ done
 #!/usr/bin/env python3
 while True:
     process_next_job()
-```
-
-Make each worker executable before mounting the application directory:
-
-```bash
-chmod +x startup.d/*
 ```
 
 You can test locally with:
