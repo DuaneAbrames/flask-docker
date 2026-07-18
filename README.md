@@ -11,6 +11,8 @@ Your mounted application directory should look like this:
 ├── app.py
 ├── packages.txt
 ├── requirements.txt
+├── startup.d/
+│   └── worker
 └── any other files the app needs
 ```
 
@@ -18,6 +20,7 @@ The container:
 
 - optionally installs `/config/packages.txt` with `apt-get`
 - optionally installs `/config/requirements.txt`
+- starts each executable file in `/config/startup.d/` as a background worker
 - runs an optional pre-start shell command
 - starts Gunicorn against `APP_MODULE`
 
@@ -90,6 +93,32 @@ See [examples/app.py](examples/app.py) and [examples/requirements.txt](examples/
 build-essential
 libpq-dev
 # imagemagick
+```
+
+## Background Workers
+
+Place each background worker in `/config/startup.d/`. Every regular file in this directory is started in the background after APT packages and Python requirements are installed, and before Gunicorn starts. Files must be executable; their shebang selects the interpreter, so both shell and Python workers are supported.
+
+For example:
+
+```bash
+#!/usr/bin/env bash
+while true; do
+  python worker.py
+  sleep 5
+done
+```
+
+```python
+#!/usr/bin/env python3
+while True:
+    process_next_job()
+```
+
+Make each worker executable before mounting the application directory:
+
+```bash
+chmod +x startup.d/*
 ```
 
 You can test locally with:

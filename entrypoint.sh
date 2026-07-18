@@ -47,6 +47,31 @@ else
     echo "No $APP_DIR/$REQUIREMENTS_FILE found. Continuing without additional installs."
 fi
 
+STARTUP_DIR="$APP_DIR/startup.d"
+
+if [ -d "$STARTUP_DIR" ]; then
+    found_startup_file=false
+
+    for startup_file in "$STARTUP_DIR"/*; do
+        [ -f "$startup_file" ] || continue
+        found_startup_file=true
+
+        if [ ! -x "$startup_file" ]; then
+            echo "ERROR: startup worker '$startup_file' is not executable." >&2
+            exit 1
+        fi
+
+        echo "Starting background worker $startup_file ..."
+        "$startup_file" &
+    done
+
+    if [ "$found_startup_file" = false ]; then
+        echo "No startup workers found in $STARTUP_DIR."
+    fi
+else
+    echo "No $STARTUP_DIR directory found. Continuing without background workers."
+fi
+
 if [ -n "$PRE_START_COMMAND" ]; then
     echo "Running pre-start command ..."
     sh -c "$PRE_START_COMMAND"
