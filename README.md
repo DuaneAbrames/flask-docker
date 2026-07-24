@@ -23,6 +23,7 @@ The container:
 - starts each executable file in `/config/startup.d/` as a background worker
 - runs an optional pre-start shell command
 - starts Gunicorn against `APP_MODULE`
+- watches `/config/restart.txt` and gracefully reloads Gunicorn when it appears
 
 Default expectations:
 
@@ -44,6 +45,8 @@ Default expectations:
 | `THREADS` | `4` | Gunicorn threads per worker |
 | `TIMEOUT` | `120` | Gunicorn request timeout |
 | `PRE_START_COMMAND` | empty | Optional shell command run before Gunicorn |
+| `GUNICORN_PID_FILE` | `/tmp/gunicorn.pid` | PID file used by the restart watcher |
+| `RESTART_POLL_INTERVAL` | `1` | Seconds between restart-file checks |
 
 ## Build
 
@@ -123,6 +126,22 @@ docker run --rm -p 5009:8000 -v "$(pwd)/examples:/config" flask-docker:test
 ```
 
 Then open `http://localhost:5009`.
+
+## Requesting a Gunicorn Reload
+
+Create `/config/restart.txt` from the app or another process to request a graceful
+Gunicorn reload:
+
+```bash
+touch /config/restart.txt
+```
+
+The container's background watcher atomically claims the request, sends `HUP` to
+the Gunicorn master, and removes the claimed file after the signal succeeds. Gunicorn
+then starts replacement workers and gracefully shuts down the previous workers.
+If Gunicorn is not ready or cannot be signaled, the request file is retained for a
+later retry. This image uses Gunicorn's supported signal interface; it does not
+create a `/root/.gunicorn/gunicorn.ctl` control socket.
 
 ## GitHub Container Registry
 

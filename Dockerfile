@@ -16,7 +16,8 @@ ENV PYTHONUNBUFFERED=1 \
 RUN pip install --no-cache-dir gunicorn
 
 COPY entrypoint.sh /usr/local/bin/flask-runner
-RUN chmod +x /usr/local/bin/flask-runner
+COPY gunicorn-restart-watcher.sh /usr/local/bin/gunicorn-restart-watcher
+RUN chmod +x /usr/local/bin/flask-runner /usr/local/bin/gunicorn-restart-watcher
 
 WORKDIR /config
 
