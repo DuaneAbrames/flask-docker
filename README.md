@@ -143,6 +143,10 @@ If Gunicorn is not ready or cannot be signaled, the request file is retained for
 later retry. This image uses Gunicorn's supported signal interface; it does not
 create a `/root/.gunicorn/gunicorn.ctl` control socket.
 
+The watcher validates that the PID file identifies a live Gunicorn process before
+it consumes a request. A stale or invalid PID file leaves `restart.txt` in place
+and emits a diagnostic to the container log.
+
 ## GitHub Container Registry
 
 The workflow at `.github/workflows/publish.yml` publishes:
