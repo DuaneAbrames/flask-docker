@@ -12,6 +12,8 @@ THREADS="${THREADS:-4}"
 TIMEOUT="${TIMEOUT:-120}"
 PRE_START_COMMAND="${PRE_START_COMMAND:-}"
 GUNICORN_PID_FILE="${GUNICORN_PID_FILE:-/tmp/gunicorn.pid}"
+RESTART_FILE="${RESTART_FILE:-$APP_DIR/restart.txt}"
+FULL_RESTART_FILE="${FULL_RESTART_FILE:-$APP_DIR/restart_full.txt}"
 
 if [ ! -d "$APP_DIR" ]; then
     echo "ERROR: application directory '$APP_DIR' was not found." >&2
@@ -74,8 +76,9 @@ if [ -n "$PRE_START_COMMAND" ]; then
     sh -c "$PRE_START_COMMAND"
 fi
 
-echo "Starting Gunicorn restart watcher for $APP_DIR/restart.txt ..."
-GUNICORN_PID_FILE="$GUNICORN_PID_FILE" RESTART_FILE="$APP_DIR/restart.txt" \
+echo "Starting Gunicorn restart watcher for $RESTART_FILE and $FULL_RESTART_FILE ..."
+GUNICORN_PID_FILE="$GUNICORN_PID_FILE" RESTART_FILE="$RESTART_FILE" \
+    FULL_RESTART_FILE="$FULL_RESTART_FILE" \
     /usr/local/bin/gunicorn-restart-watcher &
 
 echo "Starting Gunicorn"

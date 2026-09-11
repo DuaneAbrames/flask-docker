@@ -2,6 +2,7 @@
 set -eu
 
 RESTART_FILE="${RESTART_FILE:-/config/restart.txt}"
+FULL_RESTART_FILE="${FULL_RESTART_FILE:-/config/restart_full.txt}"
 GUNICORN_PID_FILE="${GUNICORN_PID_FILE:-/tmp/gunicorn.pid}"
 RESTART_POLL_INTERVAL="${RESTART_POLL_INTERVAL:-1}"
 
@@ -24,6 +25,24 @@ is_gunicorn_master() {
 }
 
 while :; do
+    if [ -f "$FULL_RESTART_FILE" ]; then
+        processing_file="${FULL_RESTART_FILE}.processing.$$"
+
+        # Claim and consume the request before the container exits so a
+        # persistent /config mount does not cause an endless restart loop.
+        if mv "$FULL_RESTART_FILE" "$processing_file" 2>/dev/null; then
+            if kill -TERM 1; then
+                echo "Full restart request received; sent TERM to container process 1."
+                rm -f "$processing_file"
+                sleep "$RESTART_POLL_INTERVAL"
+                continue
+            else
+                echo "Unable to send TERM to container process 1; retrying full restart request." >&2
+                mv "$processing_file" "$FULL_RESTART_FILE"
+            fi
+        fi
+    fi
+
     if [ -f "$RESTART_FILE" ]; then
         processing_file="${RESTART_FILE}.processing.$$"
 

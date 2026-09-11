@@ -24,6 +24,7 @@ The container:
 - runs an optional pre-start shell command
 - starts Gunicorn against `APP_MODULE`
 - watches `/config/restart.txt` and gracefully reloads Gunicorn when it appears
+- watches `/config/restart_full.txt` and stops PID 1 so Docker can restart the container
 
 Default expectations:
 
@@ -46,6 +47,8 @@ Default expectations:
 | `TIMEOUT` | `120` | Gunicorn request timeout |
 | `PRE_START_COMMAND` | empty | Optional shell command run before Gunicorn |
 | `GUNICORN_PID_FILE` | `/tmp/gunicorn.pid` | PID file used by the restart watcher |
+| `RESTART_FILE` | `$APP_DIR/restart.txt` | File that requests a graceful Gunicorn reload |
+| `FULL_RESTART_FILE` | `$APP_DIR/restart_full.txt` | File that requests a full container restart |
 | `RESTART_POLL_INTERVAL` | `1` | Seconds between restart-file checks |
 
 ## Build
@@ -146,6 +149,21 @@ create a `/root/.gunicorn/gunicorn.ctl` control socket.
 The watcher validates that the PID file identifies a live Gunicorn process before
 it consumes a request. A stale or invalid PID file leaves `restart.txt` in place
 and emits a diagnostic to the container log.
+
+## Requesting a Full Container Restart
+
+With a Docker restart policy such as `restart: always`, create
+`/config/restart_full.txt` to request a complete container restart:
+
+```bash
+touch /config/restart_full.txt
+```
+
+The watcher atomically claims the request, sends `TERM` to PID 1 (Gunicorn), and
+removes the claimed file. When PID 1 exits, Docker stops the container and the
+restart policy starts it again. The trigger is consumed so a persistent `/config`
+mount does not cause a restart loop. Full restart requests take priority when both
+restart files are present.
 
 ## GitHub Container Registry
 
