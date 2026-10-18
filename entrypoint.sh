@@ -2,6 +2,14 @@
 set -eu
 
 APP_DIR="${APP_DIR:-/config}"
+
+if [ -f "$APP_DIR/.env" ]; then
+    echo "Loading environment from $APP_DIR/.env ..."
+    set -a
+    . "$APP_DIR/.env"
+    set +a
+fi
+
 APP_FILE="${APP_FILE:-app.py}"
 APP_MODULE="${APP_MODULE:-app:app}"
 PACKAGES_FILE="${PACKAGES_FILE:-packages.txt}"

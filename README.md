@@ -8,6 +8,7 @@ Your mounted application directory should look like this:
 
 ```text
 /config/
+├── .env
 ├── app.py
 ├── packages.txt
 ├── requirements.txt
@@ -18,6 +19,7 @@ Your mounted application directory should look like this:
 
 The container:
 
+- optionally sources `/config/.env` and exports its variables before installing packages
 - optionally installs `/config/packages.txt` with `apt-get`
 - optionally installs `/config/requirements.txt`
 - starts each executable file in `/config/startup.d/` as a background worker
@@ -33,6 +35,12 @@ Default expectations:
 - Gunicorn target: `app:app`
 
 ## Environment Variables
+
+An optional `.env` in `APP_DIR` (default `/config/.env`) is sourced before startup
+settings are initialized and before APT or Python packages are installed. Its
+variables are exported to installers, background workers, and Gunicorn. Values in
+the file override existing environment variables. Use POSIX shell syntax, such as
+`API_KEY='your value'`; the file is executed as shell code.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
